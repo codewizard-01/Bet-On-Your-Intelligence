@@ -32,14 +32,28 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::defaults()
+
+            ],
+            'photo' => 'required |image',
         ]);
+
+        $new_photo_name = '';
+        if ($request->has('photo')) {
+            $photo = $request->photo;
+            $new_photo_name = time() . $photo->getClientOrignalName();
+            $photo->move('photo', $new_photo_name);
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'photo' => $new_photo_name,
         ]);
 
         event(new Registered($user));
